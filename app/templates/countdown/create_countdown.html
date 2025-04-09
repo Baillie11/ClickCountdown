@@ -1,0 +1,35 @@
+{% extends "layout.html" %}
+
+{% block content %}
+<div class="container mt-5">
+    <h2 class="mb-4 text-center">Create a New Countdown</h2>
+
+    <form method="POST" class="needs-validation" novalidate>
+        {{ form.hidden_tag() }}
+
+        <div class="mb-3">
+            {{ form.title.label(class="form-label") }}
+            {{ form.title(class="form-control", placeholder="e.g. My Birthday Countdown") }}
+            {% for error in form.title.errors %}
+                <div class="text-danger">{{ error }}</div>
+            {% endfor %}
+        </div>
+
+        <div class="mb-3">
+            {{ form.target_datetime.label(class="form-label") }}
+            {{ form.target_datetime(class="form-control", type="datetime-local") }}
+            {% for error in form.target_datetime.errors %}
+                <div class="text-danger">{{ error }}</div>
+            {% endfor %}
+        </div>
+
+        <div class="form-check mb-3">
+            {{ form.is_public(class="form-check-input") }}
+            {{ form.is_public.label(class="form-check-label") }}
+        </div>
+
+        <button type="submit" class="btn btn-primary">Create Countdown</button>
+        <a href="{{ url_for('main.view_countdowns') }}" class="btn btn-secondary">Cancel</a>
+    </form>
+</div>
+{% endblock %}

@@ -1,0 +1,27 @@
+{% extends "layout.html" %}
+
+{% block content %}
+<div class="container mt-4">
+    <h2>Your Countdowns</h2>
+    
+    {% if countdowns %}
+        <ul class="list-group">
+            {% for countdown in countdowns %}
+                <li class="list-group-item d-flex justify-content-between align-items-center">
+                    <div>
+                        <strong>{{ countdown.title }}</strong><br>
+                        Target Date: {{ countdown.target_datetime.strftime('%Y-%m-%d %H:%M:%S') }}
+                    </div>
+                    <span class="badge bg-primary rounded-pill">
+                        {{ (countdown.target_datetime - current_time).days }} days left
+                    </span>
+                </li>
+            {% endfor %}
+        </ul>
+    {% else %}
+        <p class="text-muted">You haven't created any countdowns yet.</p>
+    {% endif %}
+    
+    <a href="{{ url_for('main.create_countdown') }}" class="btn btn-success mt-3">+ New Countdown</a>
+</div>
+{% endblock %}
