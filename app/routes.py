@@ -1,18 +1,23 @@
 from flask import Blueprint, render_template, redirect, url_for, request
 from flask_login import login_required, current_user
 from . import mongo
-from datetime import datetime
 from bson.objectid import ObjectId
 
-main = Blueprint('main', __name__)  # ✅ This defines 'main'
+main = Blueprint('main', __name__)
 
 @main.route('/')
 def home():
-    return redirect(url_for('auth.login'))
+    return redirect(url_for('main.dashboard'))
 
-@main.route('/dashboard', methods=['GET', 'POST'])
+@main.route('/dashboard')
 @login_required
 def dashboard():
+    events = mongo.db.events.find({'user_id': current_user.id})
+    return render_template('dashboard.html', events=events)
+
+@main.route('/add-event', methods=['GET', 'POST'])
+@login_required
+def add_event():
     if request.method == 'POST':
         name = request.form['name']
         date = request.form['date']
@@ -24,8 +29,7 @@ def dashboard():
             })
         return redirect(url_for('main.dashboard'))
 
-    events = mongo.db.events.find({'user_id': current_user.id})
-    return render_template('dashboard.html', events=events)
+    return render_template('add_event.html')
 
 @main.route('/delete_event/<event_id>')
 @login_required

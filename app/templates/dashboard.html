@@ -1,24 +1,57 @@
 {% extends 'base.html' %}
 {% block content %}
-<div class="container">
-  <h2>My Events</h2>
+<h2 style="text-align: center;">My Events</h2>
 
-  <form method="POST">
-    <input name="name" placeholder="Event Name" required>
-    <input name="date" type="datetime-local" required>
-    <button type="submit">Add Event</button>
-  </form>
-
-  <div class="grid">
-    {% for event in events %}
-      <div class="event">
-        <strong>{{ event.name }}</strong><br>
-        Time: {{ event.date }}<br>
-        <a href="{{ url_for('main.delete_event', event_id=event._id) }}">Delete</a>
-      </div>
-    {% endfor %}
-  </div>
-
-  <a href="{{ url_for('auth.logout') }}">Logout</a>
+<div style="text-align: center; margin-bottom: 25px;">
+  <a href="{{ url_for('main.add_event') }}" class="add-event-link">+ Add New Event</a>
 </div>
+
+<div class="grid">
+  {% for event in events %}
+    <div class="event" data-event-date="{{ event.date }}" data-event-id="{{ event._id }}">
+      <strong>{{ event.name }}</strong>
+      <div class="countdown" id="countdown-{{ event._id }}"></div>
+      <a href="{{ url_for('main.delete_event', event_id=event._id) }}">Delete</a>
+    </div>
+  {% endfor %}
+</div>
+
+<!-- Countdown JS (unchanged) -->
+<script>
+function calculateCountdown(targetDate) {
+    const now = new Date();
+    const end = new Date(targetDate);
+    let diff = end - now;
+
+    if (diff <= 0) return "Event has passed.";
+
+    const totalSeconds = Math.floor(diff / 1000);
+    const years = Math.floor(totalSeconds / (365.25 * 24 * 60 * 60));
+    const months = Math.floor((totalSeconds % (365.25 * 24 * 60 * 60)) / (30.44 * 24 * 60 * 60));
+    const days = Math.floor((totalSeconds % (30.44 * 24 * 60 * 60)) / (24 * 60 * 60));
+    const hours = Math.floor((totalSeconds % (24 * 60 * 60)) / (60 * 60));
+    const minutes = Math.floor((totalSeconds % (60 * 60)) / 60);
+    const seconds = totalSeconds % 60;
+
+    return `${years}y ${months}mo ${days}d ${hours}h ${minutes}m ${seconds}s`;
+}
+
+function startCountdowns() {
+    const events = document.querySelectorAll(".event");
+
+    events.forEach(event => {
+        const targetDate = event.getAttribute("data-event-date");
+        const display = event.querySelector(".countdown");
+
+        function updateCountdown() {
+            display.textContent = calculateCountdown(targetDate);
+        }
+
+        updateCountdown();
+        setInterval(updateCountdown, 1000);
+    });
+}
+
+document.addEventListener("DOMContentLoaded", startCountdowns);
+</script>
 {% endblock %}

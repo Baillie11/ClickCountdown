@@ -1,0 +1,12 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="container">
+  <h2>Add New Event</h2>
+  <form method="POST">
+    <input name="name" placeholder="Event Name" required>
+    <input name="date" type="datetime-local" required>
+    <button type="submit">Create Event</button>
+  </form>
+  <a href="{{ url_for('main.dashboard') }}">← Back to Dashboard</a>
+</div>
+{% endblock %}
