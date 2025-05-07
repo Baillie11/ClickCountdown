@@ -1,22 +1,24 @@
 {% extends 'base.html' %}
 {% block content %}
-<h2>My Events</h2>
+<div class="container">
+  <h2>My Events</h2>
 
-<form method="POST">
-  <input name="name" placeholder="Event Name" required>
-  <input name="date" type="datetime-local" required>
-  <button type="submit">Add Event</button>
-</form>
+  <form method="POST">
+    <input name="name" placeholder="Event Name" required>
+    <input name="date" type="datetime-local" required>
+    <button type="submit">Add Event</button>
+  </form>
 
-<div class="grid">
-  {% for event in events %}
-    <div class="event">
-      <strong>{{ event.name }}</strong><br>
-      Time: {{ event.date }}<br>
-      <a href="{{ url_for('main.delete_event', event_id=event._id) }}">Delete</a>
-    </div>
-  {% endfor %}
+  <div class="grid">
+    {% for event in events %}
+      <div class="event">
+        <strong>{{ event.name }}</strong><br>
+        Time: {{ event.date }}<br>
+        <a href="{{ url_for('main.delete_event', event_id=event._id) }}">Delete</a>
+      </div>
+    {% endfor %}
+  </div>
+
+  <a href="{{ url_for('auth.logout') }}">Logout</a>
 </div>
-
-<a href="{{ url_for('auth.logout') }}">Logout</a>
 {% endblock %}
