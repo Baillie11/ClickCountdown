@@ -15,9 +15,11 @@ def create_app():
     login_manager.init_app(app)
 
     from .auth import auth as auth_blueprint
-    from .routes import main as main_blueprint
+    from .main import main as main_blueprint
 
     app.register_blueprint(auth_blueprint)
     app.register_blueprint(main_blueprint)
+
+    #print("Mongo DB object:", mongo.db)
 
     return app

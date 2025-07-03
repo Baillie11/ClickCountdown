@@ -1,12 +1,31 @@
 {% extends 'base.html' %}
+
 {% block content %}
-<div class="container">
-  <h2>Login</h2>
-  <form method="POST">
-    <input name="email" placeholder="Email" required>
-    <input name="password" type="password" placeholder="Password" required>
-    <button type="submit">Login</button>
-  </form>
-  <a href="{{ url_for('auth.register') }}">Create an account</a>
-</div>
+
+<!-- Flash message for login-required or wrong password -->
+{% with messages = get_flashed_messages() %}
+  {% if messages %}
+    <div class="flash-message">{{ messages[0] }}</div>
+  {% endif %}
+{% endwith %}
+
+<!-- Login Form -->
+<form method="POST" class="auth-form">
+  <h2>Welcome Back</h2>
+
+  <input type="email" name="email" placeholder="Email address" required>
+
+  <input type="password" name="password" placeholder="Password" required>
+
+  <input type="submit" value="Sign In">
+
+  <div class="forgot-password">
+    <a href="#">Forgot your password?</a>
+  </div>
+  
+  <div class="auth-link">
+    <a href="{{ url_for('auth.register') }}">Don't have an account? Sign up</a>
+  </div>
+</form>
+
 {% endblock %}

@@ -1,4 +1,4 @@
-from flask import Blueprint, render_template, redirect, url_for, request
+from flask import Blueprint, render_template, redirect, url_for, request, flash
 from flask_login import login_required, current_user
 from . import mongo
 from bson.objectid import ObjectId
@@ -31,8 +31,32 @@ def add_event():
 
     return render_template('add_event.html')
 
+@main.route('/edit-event/<event_id>', methods=['GET', 'POST'])
+@login_required
+def edit_event(event_id):
+    event = mongo.db.events.find_one({'_id': ObjectId(event_id), 'user_id': current_user.id})
+    
+    if not event:
+        flash('Event not found.')
+        return redirect(url_for('main.dashboard'))
+    
+    if request.method == 'POST':
+        name = request.form['name']
+        date = request.form['date']
+        if name and date:
+            mongo.db.events.update_one(
+                {'_id': ObjectId(event_id), 'user_id': current_user.id},
+                {'$set': {'name': name, 'date': date}}
+            )
+            flash('Event updated successfully!')
+            return redirect(url_for('main.dashboard'))
+        else:
+            flash('Please fill in all fields.')
+    
+    return render_template('edit_event.html', event=event)
+
 @main.route('/delete_event/<event_id>')
 @login_required
 def delete_event(event_id):
     mongo.db.events.delete_one({'_id': ObjectId(event_id), 'user_id': current_user.id})
-    return redirect(url_for('main.dashboard'))
+    return redirect(url_for('main.dashboard')) 

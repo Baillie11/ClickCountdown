@@ -1,24 +1,81 @@
 {% extends 'base.html' %}
+
 {% block content %}
-<h2 style="text-align: center;">My Events</h2>
+<div class="container">
+  <!-- Header with logout -->
+  <div class="dashboard-header">
+    <h2>My Events</h2>
+    <a href="{{ url_for('auth.logout') }}" class="logout-link">Logout</a>
+  </div>
 
-<div style="text-align: center; margin-bottom: 25px;">
-  <a href="{{ url_for('main.add_event') }}" class="add-event-link">+ Add New Event</a>
-</div>
+  <!-- Add Event -->
+  <div class="add-event-section">
+    <a href="{{ url_for('main.add_event') }}" class="add-event-link">+ Add New Event</a>
+  </div>
 
-<div class="grid">
-  {% for event in events %}
-    <div class="event" data-event-date="{{ event.date }}" data-event-id="{{ event._id }}">
-      <strong>{{ event.name }}</strong>
-      <div class="countdown" id="countdown-{{ event._id }}"></div>
-      <a href="{{ url_for('main.delete_event', event_id=event._id) }}">Delete</a>
+  <!-- Event Grid -->
+  <div class="grid">
+    {% for event in events %}
+      <div class="event" 
+           data-event-date="{{ event.date }}" 
+           data-event-id="{{ event._id }}"
+           data-event-name="{{ event.name|e }}">
+        <div class="event-header">
+          <h3 class="event-name">{{ event.name }}</h3>
+          <a href="{{ url_for('main.delete_event', event_id=event._id) }}" class="delete-icon" title="Delete event" onclick="event.stopPropagation()">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M3 6h18"></path>
+              <path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"></path>
+              <path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"></path>
+            </svg>
+          </a>
+        </div>
+        <div class="countdown" id="countdown-{{ event._id }}"></div>
+      </div>
+    {% endfor %}
+  </div>
+  
+  {% if not events %}
+    <div class="empty-state">
+      <p>No events yet. Create your first countdown!</p>
     </div>
-  {% endfor %}
+  {% endif %}
 </div>
 
-<!-- Countdown JS (unchanged) -->
+<!-- Event Details Modal -->
+<div id="eventModal" class="modal">
+  <div class="modal-content">
+    <div class="modal-header">
+      <h2 id="modalEventName"></h2>
+      <button class="close-button" onclick="closeEventModal()">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <line x1="18" y1="6" x2="6" y2="18"></line>
+          <line x1="6" y1="6" x2="18" y2="18"></line>
+        </svg>
+      </button>
+    </div>
+    <div class="modal-body">
+      <div class="event-detail">
+        <label>Event Date:</label>
+        <span id="modalEventDate"></span>
+      </div>
+      <div class="event-detail">
+        <label>Time Remaining:</label>
+        <div class="modal-countdown" id="modalCountdown"></div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn-secondary" onclick="closeEventModal()">Close</button>
+      <button class="btn-primary" id="editEventBtn" onclick="editEvent()">Edit Event</button>
+    </div>
+  </div>
+</div>
+
+<!-- Countdown Script -->
 <script>
-function calculateCountdown(targetDate) {
+  let currentEventId = null;
+
+  function calculateCountdown(targetDate) {
     const now = new Date();
     const end = new Date(targetDate);
     let diff = end - now;
@@ -33,25 +90,108 @@ function calculateCountdown(targetDate) {
     const minutes = Math.floor((totalSeconds % (60 * 60)) / 60);
     const seconds = totalSeconds % 60;
 
-    return `${years}y ${months}mo ${days}d ${hours}h ${minutes}m ${seconds}s`;
-}
+    // Build countdown string only with non-zero values
+    const parts = [];
+    
+    if (years > 0) parts.push(`${years}y`);
+    if (months > 0) parts.push(`${months}mo`);
+    if (days > 0) parts.push(`${days}d`);
+    if (hours > 0) parts.push(`${hours}h`);
+    if (minutes > 0) parts.push(`${minutes}m`);
+    if (seconds > 0) parts.push(`${seconds}s`);
+    
+    // If all parts are zero (shouldn't happen due to diff > 0 check), show "Less than 1 second"
+    if (parts.length === 0) {
+      return "Less than 1 second";
+    }
+    
+    return parts.join(' ');
+  }
 
-function startCountdowns() {
+  function startCountdowns() {
     const events = document.querySelectorAll(".event");
-
     events.forEach(event => {
-        const targetDate = event.getAttribute("data-event-date");
-        const display = event.querySelector(".countdown");
+      const targetDate = event.getAttribute("data-event-date");
+      const display = event.querySelector(".countdown");
 
-        function updateCountdown() {
-            display.textContent = calculateCountdown(targetDate);
-        }
+      function updateCountdown() {
+        display.textContent = calculateCountdown(targetDate);
+      }
 
-        updateCountdown();
-        setInterval(updateCountdown, 1000);
+      updateCountdown();
+      setInterval(updateCountdown, 1000);
+      
+      // Add click event listener for modal
+      event.addEventListener('click', function() {
+        const eventName = this.getAttribute('data-event-name');
+        const eventDate = this.getAttribute('data-event-date');
+        const eventId = this.getAttribute('data-event-id');
+        openEventModal(eventName, eventDate, eventId);
+      });
     });
-}
+  }
 
-document.addEventListener("DOMContentLoaded", startCountdowns);
+  // Modal functions
+  function openEventModal(eventName, eventDate, eventId) {
+    console.log('openEventModal called with:', { eventName, eventDate, eventId });
+    
+    currentEventId = eventId;
+    const modal = document.getElementById('eventModal');
+    const modalEventName = document.getElementById('modalEventName');
+    const modalEventDate = document.getElementById('modalEventDate');
+    const modalCountdown = document.getElementById('modalCountdown');
+
+    modalEventName.textContent = eventName;
+    
+    // Format the date nicely
+    const date = new Date(eventDate);
+    modalEventDate.textContent = date.toLocaleString();
+    
+    // Start countdown for modal
+    function updateModalCountdown() {
+      modalCountdown.textContent = calculateCountdown(eventDate);
+    }
+    updateModalCountdown();
+    const modalCountdownInterval = setInterval(updateModalCountdown, 1000);
+    
+    // Store interval ID to clear it later
+    modal.dataset.countdownInterval = modalCountdownInterval;
+    
+    modal.style.display = 'flex';
+    document.body.style.overflow = 'hidden';
+  }
+
+  function closeEventModal() {
+    const modal = document.getElementById('eventModal');
+    const intervalId = modal.dataset.countdownInterval;
+    if (intervalId) {
+      clearInterval(parseInt(intervalId));
+    }
+    modal.style.display = 'none';
+    document.body.style.overflow = 'auto';
+    currentEventId = null;
+  }
+
+  function editEvent() {
+    if (currentEventId) {
+      window.location.href = `/edit-event/${currentEventId}`;
+    }
+  }
+
+  // Close modal when clicking outside
+  document.getElementById('eventModal').addEventListener('click', function(e) {
+    if (e.target === this) {
+      closeEventModal();
+    }
+  });
+
+  // Close modal with Escape key
+  document.addEventListener('keydown', function(e) {
+    if (e.key === 'Escape') {
+      closeEventModal();
+    }
+  });
+
+  document.addEventListener("DOMContentLoaded", startCountdowns);
 </script>
 {% endblock %}

@@ -1,12 +1,24 @@
 {% extends 'base.html' %}
 {% block content %}
+
+<!-- Flash message for form errors -->
+{% with messages = get_flashed_messages() %}
+  {% if messages %}
+    <div class="flash-message">{{ messages[0] }}</div>
+  {% endif %}
+{% endwith %}
+
 <div class="container">
-  <h2>Add New Event</h2>
-  <form method="POST">
+  <div class="form-header">
+    <h2>Add New Event</h2>
+    <a href="{{ url_for('main.dashboard') }}" class="back-link">← Back to Dashboard</a>
+  </div>
+  
+  <form method="POST" class="event-form">
     <input name="name" placeholder="Event Name" required>
     <input name="date" type="datetime-local" required>
     <button type="submit">Create Event</button>
   </form>
-  <a href="{{ url_for('main.dashboard') }}">← Back to Dashboard</a>
 </div>
+
 {% endblock %}

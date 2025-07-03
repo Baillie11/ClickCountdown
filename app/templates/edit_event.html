@@ -1,0 +1,28 @@
+{% extends 'base.html' %}
+{% block content %}
+
+<!-- Flash message for form errors -->
+{% with messages = get_flashed_messages() %}
+  {% if messages %}
+    <div class="flash-message">{{ messages[0] }}</div>
+  {% endif %}
+{% endwith %}
+
+<div class="container">
+  <div class="form-header">
+    <h2>Edit Event</h2>
+    <a href="{{ url_for('main.dashboard') }}" class="back-link">← Back to Dashboard</a>
+  </div>
+  
+  <form method="POST" class="event-form">
+    <input name="name" placeholder="Event Name" value="{{ event.name }}" required>
+    
+    <!-- Convert the date to the format expected by datetime-local input -->
+    {% set event_date = event.date.split('T')[0] + 'T' + event.date.split('T')[1][:5] if 'T' in event.date else event.date %}
+    <input name="date" type="datetime-local" value="{{ event_date }}" required>
+    
+    <button type="submit">Update Event</button>
+  </form>
+</div>
+
+{% endblock %} 
