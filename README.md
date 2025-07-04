@@ -1,3 +1,5 @@
+![version](https://img.shields.io/badge/version-1.1.0-blue)
+
 # ClickCountdown
 
 A mobile-friendly Flask web application for creating and managing countdown timers to important events.

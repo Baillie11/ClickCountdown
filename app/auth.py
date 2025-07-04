@@ -33,7 +33,8 @@ def login():
 
         if user_data and check_password_hash(user_data['password'], password):
             user = User(user_data)
-            login_user(user)
+            remember = 'remember' in request.form
+            login_user(user, remember=remember)
             return redirect(url_for('main.dashboard'))
 
         flash('Invalid credentials')
